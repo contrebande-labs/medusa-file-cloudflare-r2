@@ -1,0 +1,32 @@
+{
+  "name": "medusa-file-cloudflare-r2",
+  "version": "0.0.1",
+  "description": "A Medusa plugin to interface with Cloudflare R2",
+  "author": "Contrebande Labs",
+  "license": "MIT",
+  "files": [ "services" ],
+  "scripts": {
+    "build": "esbuild src/services/** --outdir=services --format=cjs --target=esnext",
+    "publish": "npm run build"
+  },
+  "dependencies": {
+    "@medusajs/medusa": "1.7.5",
+    "@medusajs/medusa-cli": "1.3.6",
+    "aws-sdk": "2.1304.0",
+    "medusa-interfaces": "1.3.4",
+    "typeorm": "0.2.45"
+  },
+  "repository": "https://github.com/contrebande-labs/medusa-file-cloudflare-r2",
+  "keywords": [
+    "medusa-plugin",
+    "medusa",
+    "cloudflare",
+    "r2"
+  ],
+  "devDependencies": {
+    "@types/multer": "1.4.7",
+    "@types/node": "18.11.18",
+    "esbuild": "0.17.5",
+    "typescript": "4.9.4"
+  }
+}

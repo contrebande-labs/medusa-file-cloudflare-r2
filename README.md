@@ -1,0 +1,1 @@
+A simple plugin to use Cloudflare R2 as the storage provider for Medusa.
