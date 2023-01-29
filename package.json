@@ -1,6 +1,6 @@
 {
   "name": "medusa-file-cloudflare-r2",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Medusa plugin to interface with Cloudflare R2",
   "author": "Contrebande Labs",
   "license": "MIT",

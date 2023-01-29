@@ -71,17 +71,16 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   async uploadFile(fileData, options) {
     const client = this.client();
     console.log(fileData);
-    const { path, originalname } = fileData;
+    const { path, originalname, mimetype: ContentType } = fileData;
     const params = {
       ACL: options?.acl ?? (options?.isProtected ? "private" : "public-read"),
       Bucket: this.bucket_,
       Body: import_fs.default.createReadStream(path),
+      ContentType,
       Key: `${originalname}`
     };
     try {
-      const { Location, Key } = await client.upload(params).promise();
-      console.log(`Returned "Location": ${Location}`);
-      console.log(`Returned "Key": ${Key}`);
+      const { Key } = await client.upload(params).promise();
       const result = {
         url: `${this.public_domain_}/${Key}`
       };
