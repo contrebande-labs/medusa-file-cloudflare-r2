@@ -7,7 +7,7 @@ import { EntityManager } from "typeorm";
 interface Options {
 
   bucket: string,
-  public_domain: string;
+  public_url: string;
   access_key_id: string;
   secret_access_key: string;
   region: string;
@@ -21,23 +21,21 @@ export default class CloudflareR2Service extends AbstractFileService {
   protected transactionManager_: EntityManager;
 
   bucket_: string;
-  public_domain_: string;
+  public_url_: string;
   accessKeyId_: string;
   secretAccessKey_: string;
-  region_: string;
   s3Endpoint_: string;
   
   constructor({}, options: Options) {
 
     super({});
 
-    const { bucket, public_domain, access_key_id, secret_access_key, region, s3_endpoint } = options;
+    const { bucket, public_url, access_key_id, secret_access_key, s3_endpoint } = options;
 
     this.bucket_ = bucket;
-    this.public_domain_ = public_domain;
+    this.public_url_ = public_url;
     this.accessKeyId_ = access_key_id;
     this.secretAccessKey_ = secret_access_key;
-    this.region_ = region;
     this.s3Endpoint_ = s3_endpoint;
     // this.awsConfigObject_ = options.aws_config_object
 
@@ -71,8 +69,6 @@ export default class CloudflareR2Service extends AbstractFileService {
 
     const client = this.client();
 
-    console.log(fileData);
-
     const { path, originalname, mimetype: ContentType } = fileData;
 
     const params : s3.PutObjectRequest = {
@@ -88,7 +84,7 @@ export default class CloudflareR2Service extends AbstractFileService {
       const { Key } = await client.upload(params).promise();
 
       const result: FileServiceUploadResult = {
-        url: `${this.public_domain_}/${Key}`
+        url: `${this.public_url_}/${Key}`
       };
 
       return result;
@@ -131,7 +127,7 @@ export default class CloudflareR2Service extends AbstractFileService {
     return {
       writeStream: pass,
       promise: client.upload(params).promise(),
-      url: `${this.public_domain_}/${fileKey}`,
+      url: `${this.public_url_}/${fileKey}`,
       fileKey,
     };
 

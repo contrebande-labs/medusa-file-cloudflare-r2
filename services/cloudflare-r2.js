@@ -38,19 +38,17 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   manager_;
   transactionManager_;
   bucket_;
-  public_domain_;
+  public_url_;
   accessKeyId_;
   secretAccessKey_;
-  region_;
   s3Endpoint_;
   constructor({}, options) {
     super({});
-    const { bucket, public_domain, access_key_id, secret_access_key, region, s3_endpoint } = options;
+    const { bucket, public_url, access_key_id, secret_access_key, s3_endpoint } = options;
     this.bucket_ = bucket;
-    this.public_domain_ = public_domain;
+    this.public_url_ = public_url;
     this.accessKeyId_ = access_key_id;
     this.secretAccessKey_ = secret_access_key;
-    this.region_ = region;
     this.s3Endpoint_ = s3_endpoint;
   }
   client() {
@@ -70,7 +68,6 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   }
   async uploadFile(fileData, options) {
     const client = this.client();
-    console.log(fileData);
     const { path, originalname, mimetype: ContentType } = fileData;
     const params = {
       ACL: options?.acl ?? (options?.isProtected ? "private" : "public-read"),
@@ -82,7 +79,7 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
     try {
       const { Key } = await client.upload(params).promise();
       const result = {
-        url: `${this.public_domain_}/${Key}`
+        url: `${this.public_url_}/${Key}`
       };
       return result;
     } catch (err) {
@@ -111,7 +108,7 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
     return {
       writeStream: pass,
       promise: client.upload(params).promise(),
-      url: `${this.public_domain_}/${fileKey}`,
+      url: `${this.public_url_}/${fileKey}`,
       fileKey
     };
   }
