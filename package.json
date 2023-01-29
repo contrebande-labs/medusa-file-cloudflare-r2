@@ -1,13 +1,12 @@
 {
   "name": "medusa-file-cloudflare-r2",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A Medusa plugin to interface with Cloudflare R2",
   "author": "Contrebande Labs",
   "license": "MIT",
   "files": [ "services" ],
   "scripts": {
-    "build": "esbuild src/services/** --outdir=services --format=cjs --target=esnext",
-    "publish": "npm run build"
+    "build": "esbuild src/services/** --outdir=services --format=cjs --target=esnext"
   },
   "dependencies": {
     "@medusajs/medusa": "1.7.5",

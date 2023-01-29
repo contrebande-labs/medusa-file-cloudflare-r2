@@ -1,1 +1,136 @@
-var h=Object.create;var o=Object.defineProperty;var b=Object.getOwnPropertyDescriptor;var k=Object.getOwnPropertyNames;var K=Object.getPrototypeOf,F=Object.prototype.hasOwnProperty;var S=(r,e)=>{for(var t in e)o(r,t,{get:e[t],enumerable:!0})},u=(r,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of k(e))!F.call(r,i)&&i!==t&&o(r,i,{get:()=>e[i],enumerable:!(s=b(e,i))||s.enumerable});return r};var l=(r,e,t)=>(t=r!=null?h(K(r)):{},u(e||!r||!r.__esModule?o(t,"default",{value:r,enumerable:!0}):t,r)),$=r=>u(o({},"__esModule",{value:!0}),r);var w={};S(w,{default:()=>m});module.exports=$(w);var d=l(require("fs")),y=l(require("aws-sdk/clients/s3")),_=require("@medusajs/medusa"),g=l(require("stream"));class m extends _.AbstractFileService{manager_;transactionManager_;bucket_;public_domain_;accessKeyId_;secretAccessKey_;region_;s3Endpoint_;constructor({},e){super({});const{bucket:t,public_domain:s,access_key_id:i,secret_access_key:c,region:a,s3_endpoint:n}=e;this.bucket_=t,this.public_domain_=s,this.accessKeyId_=i,this.secretAccessKey_=c,this.region_=a,this.s3Endpoint_=n}client(){return new y.default({signatureVersion:"v4",region:"auto",endpoint:this.s3Endpoint_,accessKeyId:this.accessKeyId_,secretAccessKey:this.secretAccessKey_})}upload(e){return this.uploadFile(e)}uploadProtected(e){return this.uploadFile(e,{acl:"private"})}async uploadFile(e,t){const s=this.client();console.log(e);const{path:i,originalname:c}=e,a={ACL:t?.acl??(t?.isProtected?"private":"public-read"),Bucket:this.bucket_,Body:d.default.createReadStream(i),Key:`${c}`};try{const{Location:n,Key:p}=await s.upload(a).promise();return console.log(`Returned "Location": ${n}`),console.log(`Returned "Key": ${p}`),{url:`${this.public_domain_}/${p}`}}catch(n){throw console.error(n),new Error("An error occurred while uploading the file.")}}async delete(e){const t=this.client(),s={Bucket:this.bucket_,Key:`${e}`};await t.deleteObject(s).promise()}async getUploadStreamDescriptor(e){const t=new g.default.PassThrough,s=`${e.name}.${e.ext}`,i={ACL:e.acl??"private",Bucket:this.bucket_,Body:t,Key:s},c=this.client();return{writeStream:t,promise:c.upload(i).promise(),url:`${this.public_domain_}/${s}`,fileKey:s}}async getDownloadStream(e){const t=this.client(),s={Bucket:this.bucket_,Key:`${e.fileKey}`};return t.getObject(s).createReadStream()}async getPresignedDownloadUrl(e){const t=this.client(),s={Bucket:this.bucket_,Key:`${e.fileKey}`,Expires:60};return await t.getSignedUrlPromise("getObject",s)}}
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var cloudflare_r2_exports = {};
+__export(cloudflare_r2_exports, {
+  default: () => CloudflareR2Service
+});
+module.exports = __toCommonJS(cloudflare_r2_exports);
+var import_fs = __toESM(require("fs"));
+var import_s3 = __toESM(require("aws-sdk/clients/s3"));
+var import_medusa = require("@medusajs/medusa");
+var import_stream = __toESM(require("stream"));
+class CloudflareR2Service extends import_medusa.AbstractFileService {
+  manager_;
+  transactionManager_;
+  bucket_;
+  public_domain_;
+  accessKeyId_;
+  secretAccessKey_;
+  region_;
+  s3Endpoint_;
+  constructor({}, options) {
+    super({});
+    const { bucket, public_domain, access_key_id, secret_access_key, region, s3_endpoint } = options;
+    this.bucket_ = bucket;
+    this.public_domain_ = public_domain;
+    this.accessKeyId_ = access_key_id;
+    this.secretAccessKey_ = secret_access_key;
+    this.region_ = region;
+    this.s3Endpoint_ = s3_endpoint;
+  }
+  client() {
+    return new import_s3.default({
+      signatureVersion: "v4",
+      region: "auto",
+      endpoint: this.s3Endpoint_,
+      accessKeyId: this.accessKeyId_,
+      secretAccessKey: this.secretAccessKey_
+    });
+  }
+  upload(fileData) {
+    return this.uploadFile(fileData);
+  }
+  uploadProtected(fileData) {
+    return this.uploadFile(fileData, { acl: "private" });
+  }
+  async uploadFile(fileData, options) {
+    const client = this.client();
+    console.log(fileData);
+    const { path, originalname } = fileData;
+    const params = {
+      ACL: options?.acl ?? (options?.isProtected ? "private" : "public-read"),
+      Bucket: this.bucket_,
+      Body: import_fs.default.createReadStream(path),
+      Key: `${originalname}`
+    };
+    try {
+      const { Location, Key } = await client.upload(params).promise();
+      console.log(`Returned "Location": ${Location}`);
+      console.log(`Returned "Key": ${Key}`);
+      const result = {
+        url: `${this.public_domain_}/${Key}`
+      };
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw new Error("An error occurred while uploading the file.");
+    }
+  }
+  async delete(file) {
+    const client = this.client();
+    const params = {
+      Bucket: this.bucket_,
+      Key: `${file}`
+    };
+    await client.deleteObject(params).promise();
+  }
+  async getUploadStreamDescriptor(fileData) {
+    const pass = new import_stream.default.PassThrough();
+    const fileKey = `${fileData.name}.${fileData.ext}`;
+    const params = {
+      ACL: fileData.acl ?? "private",
+      Bucket: this.bucket_,
+      Body: pass,
+      Key: fileKey
+    };
+    const client = this.client();
+    return {
+      writeStream: pass,
+      promise: client.upload(params).promise(),
+      url: `${this.public_domain_}/${fileKey}`,
+      fileKey
+    };
+  }
+  async getDownloadStream(fileData) {
+    const client = this.client();
+    const params = {
+      Bucket: this.bucket_,
+      Key: `${fileData.fileKey}`
+    };
+    return client.getObject(params).createReadStream();
+  }
+  async getPresignedDownloadUrl(fileData) {
+    const client = this.client();
+    const params = {
+      Bucket: this.bucket_,
+      Key: `${fileData.fileKey}`,
+      Expires: 60
+    };
+    return await client.getSignedUrlPromise("getObject", params);
+  }
+}
