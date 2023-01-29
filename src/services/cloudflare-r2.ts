@@ -6,7 +6,8 @@ import { EntityManager } from "typeorm";
 
 interface Options {
 
-  bucket: string,
+  bucket: string;
+  prefix?: string;
   public_url: string;
   access_key_id: string;
   secret_access_key: string;
@@ -21,6 +22,7 @@ export default class CloudflareR2Service extends AbstractFileService {
   protected transactionManager_: EntityManager;
 
   bucket_: string;
+  prefix_: string;
   public_url_: string;
   accessKeyId_: string;
   secretAccessKey_: string;
@@ -30,9 +32,10 @@ export default class CloudflareR2Service extends AbstractFileService {
 
     super({});
 
-    const { bucket, public_url, access_key_id, secret_access_key, s3_endpoint } = options;
+    const { bucket, prefix="", public_url, access_key_id, secret_access_key, s3_endpoint } = options;
 
     this.bucket_ = bucket;
+    this.prefix_ = prefix;
     this.public_url_ = public_url;
     this.accessKeyId_ = access_key_id;
     this.secretAccessKey_ = secret_access_key;
@@ -71,20 +74,22 @@ export default class CloudflareR2Service extends AbstractFileService {
 
     const { path, originalname, mimetype: ContentType } = fileData;
 
+    const Key = this.getFileKey(originalname);
+
     const params : s3.PutObjectRequest = {
       ACL: options?.acl ?? (options?.isProtected ? "private" : "public-read"),
       Bucket: this.bucket_,
       Body: fs.createReadStream(path),
       ContentType,
-      Key: `${originalname}`
+      Key
     };
 
     try {
 
-      const { Key } = await client.upload(params).promise();
+      const { Key: returnedKey } = await client.upload(params).promise();
 
       const result: FileServiceUploadResult = {
-        url: `${this.public_url_}/${Key}`
+        url: `${this.public_url_}/${returnedKey}`
       };
 
       return result;
@@ -111,9 +116,9 @@ export default class CloudflareR2Service extends AbstractFileService {
 
   async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType) {
 
-    const pass = new stream.PassThrough()
+    const pass = new stream.PassThrough();
 
-    const fileKey = `${fileData.name}.${fileData.ext}`;
+    const fileKey = this.getFileKey(`${fileData.name}.${fileData.ext}`);
 
     const params: s3.PutObjectRequest = {
       ACL: fileData.acl ?? "private",
@@ -157,6 +162,14 @@ export default class CloudflareR2Service extends AbstractFileService {
     }
 
     return await client.getSignedUrlPromise("getObject", params)
+  }
+
+  getFileKey(fileName: string) {
+  
+    const prefixPath = this.prefix_.trim().length > 0 ? `${this.prefix_}/` : "";
+
+    return `${prefixPath}${fileName}`;
+
   }
 
 }

@@ -38,14 +38,16 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   manager_;
   transactionManager_;
   bucket_;
+  prefix_;
   public_url_;
   accessKeyId_;
   secretAccessKey_;
   s3Endpoint_;
   constructor({}, options) {
     super({});
-    const { bucket, public_url, access_key_id, secret_access_key, s3_endpoint } = options;
+    const { bucket, prefix = "", public_url, access_key_id, secret_access_key, s3_endpoint } = options;
     this.bucket_ = bucket;
+    this.prefix_ = prefix;
     this.public_url_ = public_url;
     this.accessKeyId_ = access_key_id;
     this.secretAccessKey_ = secret_access_key;
@@ -69,17 +71,18 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   async uploadFile(fileData, options) {
     const client = this.client();
     const { path, originalname, mimetype: ContentType } = fileData;
+    const Key = this.getFileKey(originalname);
     const params = {
       ACL: options?.acl ?? (options?.isProtected ? "private" : "public-read"),
       Bucket: this.bucket_,
       Body: import_fs.default.createReadStream(path),
       ContentType,
-      Key: `${originalname}`
+      Key
     };
     try {
-      const { Key } = await client.upload(params).promise();
+      const { Key: returnedKey } = await client.upload(params).promise();
       const result = {
-        url: `${this.public_url_}/${Key}`
+        url: `${this.public_url_}/${returnedKey}`
       };
       return result;
     } catch (err) {
@@ -97,7 +100,7 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
   }
   async getUploadStreamDescriptor(fileData) {
     const pass = new import_stream.default.PassThrough();
-    const fileKey = `${fileData.name}.${fileData.ext}`;
+    const fileKey = this.getFileKey(`${fileData.name}.${fileData.ext}`);
     const params = {
       ACL: fileData.acl ?? "private",
       Bucket: this.bucket_,
@@ -128,5 +131,9 @@ class CloudflareR2Service extends import_medusa.AbstractFileService {
       Expires: 60
     };
     return await client.getSignedUrlPromise("getObject", params);
+  }
+  getFileKey(fileName) {
+    const prefixPath = this.prefix_.trim().length > 0 ? `${this.prefix_}/` : "";
+    return `${prefixPath}${fileName}`;
   }
 }
